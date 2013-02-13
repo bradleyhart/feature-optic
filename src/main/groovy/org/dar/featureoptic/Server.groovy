@@ -2,6 +2,7 @@ package org.dar.featureoptic
 
 import groovy.io.GroovyPrintWriter
 
+import static org.dar.featureoptic.CommandRunner.run
 import static org.dar.featureoptic.PostBodyMapper.getQueryMap
 import static spark.Spark.*;
 import spark.*;
@@ -40,21 +41,17 @@ public class Server {
 
         get(route("/repo/:name/update") { Request request, Response response ->
             GitRepo repo = repositories.get(request.params(":name"))
-//            run "git reset HEAD --hard ${repo.localLocation}"
             run "git --git-dir ${repo.localLocation}/.git fetch"
             run "git --git-dir ${repo.localLocation}/.git --work-tree=${repo.localLocation} merge origin/master"
             response.redirect("/repo/${request.params(":name")}")
         })
 
+        get(route("/repo/:name/feature/:feature") { Request request, Response response ->
+            repositories.get(request.params(":name")).getFeature(request.params(":feature")).view()
+        })
+
     }
 
-    def static run(String command){
-        def result = command.execute()
-        result.waitFor()
-        if (result.exitValue() != 0) {
-            throw new RuntimeException("$result failed")
-        }
-    }
 
     def static route(def route, Closure closure){
         new Route(route) {

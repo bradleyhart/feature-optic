@@ -1,0 +1,16 @@
+apply plugin: 'groovy'
+
+repositories {
+    mavenCentral()
+    maven {
+        url "http://www.sparkjava.com/nexus/content/repositories/spark/"
+    }
+    maven {
+        url "http://download.eclipse.org/jgit/maven"
+    }
+}
+
+dependencies {
+    compile group: 'spark', name: 'spark', version: '0.9.9.4-SNAPSHOT'
+    compile 'org.codehaus.groovy:groovy-all:2.1.0'
+}

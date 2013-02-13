@@ -9,7 +9,7 @@ import spark.*;
 public class Server {
 
     static PerisitedGitRepositories repositories = new PerisitedGitRepositories()
-                 //https://github.com/leytonstoneislam/website.git
+
     public static void main(String[] args) {
 
         post(route("/repo") {  Request request, Response response ->
@@ -18,11 +18,7 @@ public class Server {
             def remoteLocation = URLDecoder.decode(params.get("remote"))
             def repoName = params.get("name")
 
-            def clone = "git clone ${remoteLocation} ${localLocation}".execute()
-            clone.waitFor()
-            if (clone.exitValue() != 0) {
-                throw new RuntimeException("$clone failed")
-            }
+            run "git clone ${remoteLocation} ${localLocation}"
 
             repositories.add(new GitRepo(localLocation, remoteLocation, repoName))
             response.redirect("/repo/${params.get("name")}")
@@ -30,7 +26,7 @@ public class Server {
 
         get(route("/repo") {  Request request, Response response ->
             def sb = new StringBuilder()
-            repositories.all().each { sb.append(it.view()) }
+            repositories.all().each { sb.append(it.listView()) }
             sb.toString()
         })
 
@@ -42,6 +38,22 @@ public class Server {
             repositories.get(request.params(":name")).view()
         })
 
+        get(route("/repo/:name/update") { Request request, Response response ->
+            GitRepo repo = repositories.get(request.params(":name"))
+//            run "git reset HEAD --hard ${repo.localLocation}"
+            run "git --git-dir ${repo.localLocation}/.git fetch"
+            run "git --git-dir ${repo.localLocation}/.git --work-tree=${repo.localLocation} merge origin/master"
+            response.redirect("/repo/${request.params(":name")}")
+        })
+
+    }
+
+    def static run(String command){
+        def result = command.execute()
+        result.waitFor()
+        if (result.exitValue() != 0) {
+            throw new RuntimeException("$result failed")
+        }
     }
 
     def static route(def route, Closure closure){

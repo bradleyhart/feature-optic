@@ -1,6 +1,6 @@
 package org.dar.featureoptic
 
-class GitRepo implements Serializable,Viewable {
+class GitRepo implements Serializable,Viewable,ListViewable {
     String localLocation
     String name
     String remoteLocation
@@ -13,6 +13,16 @@ class GitRepo implements Serializable,Viewable {
 
     @Override
     String view() {
+        """<h1>$name</h1>
+           <p>$remoteLocation</p>
+           <form method="get" action="/repo/$name/update">
+                <input type="submit" value="Update">
+           </form>
+        </div>"""
+    }
+
+    @Override
+    String listView() {
         """<a href=/repo/$name>$name $remoteLocation</a>"""
     }
 }
